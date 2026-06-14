@@ -15,9 +15,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-	title: "Translator Recipe | Agora Conversational AI",
+	title: "LLM Vendors Recipe | Agora Conversational AI",
 	description:
-		"Recipe: real-time speech translation — speak the source language, hear the target.",
+		"Recipe: a voice agent with a swappable LLM vendor — key-less managed OpenAI by default.",
 	icons: {
 		icon: [
 			{ url: "/favicon.ico" },

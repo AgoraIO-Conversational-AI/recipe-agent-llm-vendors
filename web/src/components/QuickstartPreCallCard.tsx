@@ -24,11 +24,11 @@ export function QuickstartPreCallCard({
 			}}
 		>
 			<h1 className="text-[28px] font-medium leading-[1.2] text-white">
-				Translator Recipe
+				LLM Vendors Recipe
 			</h1>
 			<p className="mt-[14px] text-sm font-medium leading-6 text-muted-foreground">
-				Speak in the source language; the agent translates and speaks it in the
-				target language. Set SOURCE_LANG / TARGET_LANG.
+				Talk to a voice agent whose LLM is swappable across every Agora-supported
+				vendor. Runs key-less on managed OpenAI; set LLM_VENDOR to swap.
 			</p>
 
 			<Button
