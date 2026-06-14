@@ -2,13 +2,13 @@
 
 For coding agents working in `recipe-agent-llm-vendors`. This repository is the
 **LLM vendors** recipe in the Agora Conversational AI recipes family: the LLM leg
-is a data-driven switchboard over every A4.1 LLM vendor, selected via `LLM_VENDOR`.
+is a per-vendor switchboard (one readable `build_<vendor>` per vendor) selected via `LLM_VENDOR`.
 
 ## System shape
 
 - **`server/`** — Python FastAPI agent backend (:8000). Owns Agora token
   generation and agent session lifecycle. The LLM leg is built from the
-  data-driven registry in `server/src/vendors.py`; default vendor `openai` is
+  per-vendor builder registry in `server/src/vendors.py`; default vendor `openai` is
   Agora-managed (keyless). SDK: `agora-agents>=2.0.0` (`import agora_agent`).
 - **`web/`** — Next.js 16 / React 19 / TypeScript frontend (:3000): the
   `EventTimeline` and the annotated transcript.
