@@ -64,6 +64,7 @@ class Agent:
         channel_name: str,
         agent_uid: int,
         user_uid: int,
+        vendor: Optional[str] = None,
         output_audio_codec: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Start the agent with the selected LLM vendor."""
@@ -76,10 +77,13 @@ class Agent:
 
         name = f"agent_{channel_name}_{agent_uid}_{int(time.time())}"
 
+        # The in-UI switcher passes `vendor`; otherwise fall back to LLM_VENDOR.
+        selected = (vendor or self.vendor).strip()
+
         # Build the selected LLM vendor from the registry. For a BYO vendor
         # without its credentials this raises ValueError listing the missing
         # environment variables — validated here in start(), not __init__.
-        llm = build_vendor(self.vendor)
+        llm = build_vendor(selected)
 
         stt = DeepgramSTT(model="nova-3", language="en")
         tts = MiniMaxTTS(model="speech_2_6_turbo", voice_id="English_captivating_female1")
@@ -166,6 +170,7 @@ class Agent:
         return {
             "agent_id": agent_id,
             "channel_name": channel_name,
+            "vendor": selected,
             "status": "started",
         }
 

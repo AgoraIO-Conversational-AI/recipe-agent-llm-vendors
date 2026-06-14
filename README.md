@@ -5,7 +5,7 @@
 [![Bun](https://img.shields.io/badge/bun-latest-black)](https://bun.sh/)
 
 The **LLM vendors** recipe in the Agora Conversational AI recipes family.
-A voice assistant whose **LLM leg is a data-driven switchboard** over every
+A voice assistant whose **LLM leg is a per-vendor switchboard** over every
 A4.1 LLM vendor. It **runs zero-key on the default `openai` LLM** (Agora-managed,
 no `OPENAI_API_KEY` required); set `LLM_VENDOR=<x>` plus that vendor's key to swap
 in any other LLM. The STT and TTS legs stay on the proven keyless configs, so only
@@ -15,8 +15,12 @@ the reasoning leg changes.
 
 ## Vendors
 
-Pick a vendor with `LLM_VENDOR`; supply the required env vars; optionally override
-the model with `LLM_MODEL`.
+Two ways to pick a vendor:
+- **In the UI** — the pre-call screen has an **LLM vendor dropdown**; choose one and
+  start. No restart needed. (A "needs key" vendor still requires its env vars set on
+  the server; if they're missing, startup reports exactly which.)
+- **By env** — set `LLM_VENDOR` (the default for the dropdown) + the vendor's key in
+  `server/.env.local`; optionally override the model with `LLM_MODEL`.
 
 | Vendor | `LLM_VENDOR` | Required env | Default model |
 | --- | --- | --- | --- |
@@ -32,6 +36,38 @@ the model with `LLM_MODEL`.
 
 🟢 = keyless default. The selected vendor's credentials are validated **when the
 agent starts** (not at construction), so `/get_config` always works key-less.
+
+### Sample code — how each vendor is wired
+
+Every vendor is a small, copy-pasteable builder in [`server/src/vendors.py`](server/src/vendors.py)
+that shows the real SDK constructor. For example:
+
+```python
+from agora_agent.agentkit.vendors import OpenAI, Anthropic, Groq
+
+# OpenAI — Agora-managed, key-less:
+OpenAI(model="gpt-4o-mini")
+
+# Anthropic Claude — set ANTHROPIC_API_KEY:
+Anthropic(
+    api_key=env["ANTHROPIC_API_KEY"],
+    model="claude-3-5-sonnet-20241022",
+    url="https://api.anthropic.com",
+    max_tokens=1024,
+    headers={},
+)
+
+# Groq — set GROQ_API_KEY:
+Groq(
+    api_key=env["GROQ_API_KEY"],
+    model="llama-3.3-70b-versatile",
+    base_url="https://api.groq.com/openai/v1",
+)
+```
+
+The agent attaches the chosen one with `.with_llm(build_vendor(name))`; STT
+(`DeepgramSTT`) and TTS (`MiniMaxTTS`) stay on their key-less configs. To add or
+change a vendor, edit its `build_<vendor>` function + the `REGISTRY` line.
 
 ## Prerequisites
 
@@ -57,8 +93,9 @@ bun run dev
 Open [http://localhost:3000](http://localhost:3000) → **Start Conversation** → speak.
 Watch the **Event Timeline** panel update in real time.
 
-To try a different LLM, set `LLM_VENDOR` and that vendor's key in `server/.env.local`
-(see [Vendors](#vendors)), then restart.
+To try a different LLM, pick it from the **dropdown** on the pre-call screen (no
+restart). For a "needs key" vendor, set its key in `server/.env.local` first (see
+[Vendors](#vendors)).
 
 ### Working from a clone
 
@@ -131,9 +168,9 @@ Next.js  ──rewrite──▶  Agent backend  (server/, localhost:8000)
                        EventTimeline + annotated transcript in the web UI
 ```
 
-The LLM vendor switchboard lives in `server/src/vendors.py` — a data-driven
-registry mapping each vendor to `{cls, creds, defaults}`. See
-[ARCHITECTURE.md](./ARCHITECTURE.md).
+The LLM vendor switchboard lives in `server/src/vendors.py` — one readable
+`build_<vendor>` function per vendor (the sample code) plus a `REGISTRY` mapping
+name → builder + required env. See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## What You Get
 
@@ -168,7 +205,7 @@ registry mapping each vendor to `{cls, creds, defaults}`. See
 
 - `web/` — Next.js frontend (:3000); RTC/RTM lifecycle, EventTimeline, transcript.
 - `server/` — FastAPI agent backend (:8000); Agora tokens + agent lifecycle.
-- `server/src/vendors.py` — the data-driven LLM vendor registry.
+- `server/src/vendors.py` — one readable builder per LLM vendor + the registry.
 - `ARCHITECTURE.md` — system shape and component boundaries.
 - `AGENTS.md` — guide for coding agents working in this repo.
 
